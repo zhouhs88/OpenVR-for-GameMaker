@@ -22,4 +22,4 @@ if (!is_undefined(global.vive_lbuffer))
 if (!is_undefined(global.vive_rbuffer))
     buffer_delete(global.vive_rbuffer);
     
-vr_init(); // Resets all the variables
+vr_init(false); // Resets all the variables

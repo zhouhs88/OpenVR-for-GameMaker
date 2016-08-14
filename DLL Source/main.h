@@ -28,6 +28,9 @@ class Vive
         double                  getChaperoneState(){return vr::VRChaperone() -> GetCalibrationState();};
         int                     updateEvents();
         void                    getNextEventData(double* data);
+        uint32_t                getControllerModelVertexCount(int index);
+        bool                    loadControllerModel(int index, void* modelBuffer);
+        void                    setModelLoading(bool load){deviceStartLoadingModels = load;};
 
         vr::IVRSystem*          getVrSystem(){return hmd;};
         vr::EVRInitError        initError = vr::VRInitError_None;
@@ -43,9 +46,15 @@ class Vive
         vr::TrackedDevicePose_t vrPoses[vr::k_unMaxTrackedDeviceCount];
         double**                deviceMatrices = nullptr;
         char*                   deviceClass = nullptr;
+        bool*                   deviceModelLoaded = nullptr;
+        vr::RenderModel_t**     deviceModel = nullptr;
+        bool                    deviceStartLoadingModels = false;
+
         double*                 hmdMatrix = nullptr; // SHARED with deviceMatrices!
         uint32_t                rWidth,
                                 rHeight;
+        vr::IVRRenderModels     modelLoader;
+
 
             // SDL:
         SDL_Window*             sdlWindow = nullptr;
@@ -168,6 +177,12 @@ Vive::Vive(uint32_t rWidth, uint32_t rHeight)
 
     updateTextures(defaultTextureColor, defaultTextureColor);
 
+    deviceModelLoaded = new bool[vr::k_unMaxTrackedDeviceCount];
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+        deviceModelLoaded[i] = false;
+
+    deviceModel = new vr::RenderModel_t*[vr::k_unMaxTrackedDeviceCount];
+
 }
 
 Vive::~Vive()
@@ -211,8 +226,26 @@ Vive::~Vive()
     }
     deviceMatrices = nullptr;
 
+    // Free all device class values:
     if (deviceClass != nullptr)
         delete deviceClass;
+
+
+    // Free all device models:
+    if (deviceModel != nullptr)
+    {
+        for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+        {
+            if (deviceModelLoaded != nullptr && deviceModelLoaded[i] == true)
+                modelLoader.FreeRenderModel(deviceModel[i]);
+            delete deviceModel[i];
+        }
+
+        delete [] deviceModel;
+    }
+
+    if (deviceModelLoaded != nullptr)
+        delete deviceModelLoaded;
 
     deviceClass = nullptr;
 }
@@ -393,6 +426,40 @@ void Vive::updatePoses(void)
                 default:
                     deviceClass[i] = '_'; break;
             }
+
+            // Free model if needed:
+            if (deviceModelLoaded[i] && deviceClass[i] == '_')
+            {
+                modelLoader.FreeRenderModel(deviceModel[i]);
+                deviceModelLoaded[i] = false;
+            }
+
+            // Load model if available:
+            if (deviceStartLoadingModels && !deviceModelLoaded[i] && deviceClass[i] != '_')
+            {
+                uint32_t _nameIndex = 0;
+                for (uint32_t j = 0; j <= i; ++j)
+                {
+                    if (deviceClass[j] != '_')
+                        ++_nameIndex;
+                }
+                    // Load name
+                char _name[1024];
+                    // -- STUB -- // Next line crashing system???
+                uint32_t _nameSize = modelLoader.GetRenderModelName(_nameIndex, _name, 1024);
+                _nameSize = _nameSize;
+                if (_nameSize == 0)
+                {
+                    vr::EVRRenderModelError _error;
+
+                    // Loop until done loading (or other error)
+                    while ((_error = modelLoader.LoadRenderModel_Async(_name, &(deviceModel[i]))) == vr::VRRenderModelError_Loading)
+                        ;
+                        // Successful:
+                    if (_error == vr::VRRenderModelError_None)
+                        deviceModelLoaded[i] = true;
+                }
+            }
         }
         else
             deviceClass[i] = '_'; // None
@@ -512,6 +579,79 @@ void Vive::getControllerPosition(int index, double* m)
             ++indexCurrent;
         }
     }
+}
+
+uint32_t    Vive::getControllerModelVertexCount(int index)
+{
+    int indexCurrent = 1;
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+    {
+        if (deviceClass[i] == 'c')
+        {
+            if (indexCurrent == index)
+            {
+                // If we haven't loaded the model yet, we have 0 vertices
+                if (!deviceModelLoaded[i])
+                    return 0;
+
+                // Grab the vertex data:
+                return deviceModel[i] -> unVertexCount;
+            }
+            ++indexCurrent;
+        }
+    }
+
+    // Incorrect index:
+    return 0;
+}
+
+bool Vive::loadControllerModel(int index, void* modelBuffer)
+{
+    /* Buffer format is:
+        Position [x,y,z]: float32
+        Normal   [x,y,z]: float32
+        UV       [u, v] : float32
+     */
+     int indexMain = -1,
+         indexCurrent = 1;
+
+        // Grab the proper array index:
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+    {
+        if (deviceClass[i] == 'c')
+        {
+            if (indexCurrent == index)
+            {
+                indexMain = i;
+                break;
+            }
+            ++indexCurrent;
+        }
+    }
+    if (indexMain == -1)
+        return false; // Failed to generate model
+    float*  _buffer = (float*) modelBuffer;
+    // Add each vertex and other data to the buffer:
+    for (uint32_t i = 0; i < deviceModel[indexMain] -> unVertexCount; ++i)
+    {
+        const vr::RenderModel_Vertex_t* _vertex = deviceModel[indexMain] -> rVertexData;
+
+        uint32_t i8 = i * 8;
+            // Positional Data:
+        _buffer[i8] =   _vertex -> vPosition.v[0];
+        _buffer[++i8] = _vertex -> vPosition.v[1];
+        _buffer[++i8] = _vertex -> vPosition.v[2];
+            // Normal Data:
+        _buffer[++i8] = _vertex -> vNormal.v[0];
+        _buffer[++i8] = _vertex -> vNormal.v[1];
+        _buffer[++i8] = _vertex -> vNormal.v[2];
+            // UV Data:
+        _buffer[++i8] = _vertex -> rfTextureCoord[0];
+        _buffer[++i8] = _vertex -> rfTextureCoord[1];
+
+    }
+
+    return true;
 }
 
 #endif // __MAIN_H__

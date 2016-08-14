@@ -2959,6 +2959,7 @@ public:
     * is only used for iterating over all available render models.  If the index is out of range, this function will return 0.
     * Otherwise, it will return the size of the buffer required for the name. */
     uint32_t GetRenderModelName( uint32_t unRenderModelIndex, VR_OUT_STRING() char *pchRenderModelName, uint32_t unRenderModelNameLen ) { return _table.GetRenderModelName(unRenderModelIndex, pchRenderModelName, unRenderModelNameLen); }
+    //virtual uint32_t GetRenderModelName( uint32_t unRenderModelIndex, VR_OUT_STRING() char *pchRenderModelName, uint32_t unRenderModelNameLen ) = 0;
 
     /** Returns the number of available render models. */
     uint32_t GetRenderModelCount() { return _table.GetRenderModelCount(); }

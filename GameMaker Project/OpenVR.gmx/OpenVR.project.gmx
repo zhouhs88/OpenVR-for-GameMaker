@@ -75,7 +75,9 @@
   </datafiles>
   <NewExtensions/>
   <sounds name="sound"/>
-  <sprites name="sprites"/>
+  <sprites name="sprites">
+    <sprite>sprites\dummySpr</sprite>
+  </sprites>
   <backgrounds name="background"/>
   <paths name="paths"/>
   <scripts name="scripts">
@@ -107,6 +109,8 @@
       <script>scripts\vr_get_chaperonestate.gml</script>
       <script>scripts\vr_update_events.gml</script>
       <script>scripts\vr_pull_event.gml</script>
+      <script>scripts\vr_generate_controller_model.gml</script>
+      <script>scripts\vr_load_dll_models.gml</script>
       <scripts name="Matrices">
         <script>scripts\vr_get_matrix_hmd.gml</script>
         <script>scripts\vr_get_matrix_pos.gml</script>

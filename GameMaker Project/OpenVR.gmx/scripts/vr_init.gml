@@ -14,6 +14,17 @@ global.vive_isrunning = false;
 global.vive_lbuffer = undefined;    // Render buffer
 global.vive_rbuffer = undefined;
 
+    // Create custom format for VIVE models.
+    // NOTE: Models will be generated in VR units (meters)!
+if (argument_count < 0 || (argument_count > 0 && argument[0] == true))
+{
+    vertex_format_begin();
+    vertex_format_add_position_3d();
+    vertex_format_add_normal();
+    vertex_format_add_textcoord();
+    global.vive_bufferformat = vertex_format_end();
+}
+
 // Initialization error codes:
 enum VR_INIT_ERROR
 {
@@ -185,4 +196,7 @@ global.vive_external_getchaperonestate = external_define(__viveDLLFilename, "get
 global.vive_external_updateevents = external_define(__viveDLLFilename, "updateEvents", dll_cdecl, ty_real, 0);
 global.vive_external_pullevent = external_define(__viveDLLFilename, "pullEvent", dll_cdecl, ty_real, 1, ty_string);
 
+global.vive_external_getcontrollervertexcount = external_define(__viveDLLFilename, "getControllerModelVertexCount", dll_cdecl, ty_real, 1, ty_real);
+global.vive_external_loadcontrollermodel = external_define(__viveDLLFilename, "loadControllerModel", dll_cdecl, ty_real, 2, ty_real, ty_string);
+global.vive_external_beginmodelload = external_define(__viveDLLFilename, "beginModelLoad", dll_cdecl, ty_real, 0);
 return undefined;

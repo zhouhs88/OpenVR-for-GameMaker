@@ -60,6 +60,9 @@ _fadeColor = c_red;
 
 _gripButton[1] = false;
 _gripButton[0] = false;
+
+_controllerModelLoaded = false;
+_controllerModel = undefined;
 </string>
           </argument>
         </arguments>
@@ -117,6 +120,37 @@ for (var i = 0; i &lt; __eventCount; ++i)
          // NOTHING
         break;
     }
+}
+</string>
+          </argument>
+        </arguments>
+      </action>
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// Load Controller Model
+if (_controllerModelLoaded)
+    exit;
+    
+_controllerModel = vr_generate_controller_model(1);
+
+if (!is_undefined(_controllerModel))
+{
+    show_debug_message("SUCCESSFULLY LOADED CONTROLLER MODEL!");
+    _controllerModelLoaded = true;
 }
 </string>
           </argument>
@@ -206,7 +240,8 @@ draw_text(10, 10, "##Play Size: [" + string(vr_get_playwidth()) + ", " + string(
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>_gridVisible = !_gridVisible;
+            <string>/// Home Grid
+_gridVisible = !_gridVisible;
 if (!_gridVisible)
     vr_home_fadeout(1.);
 else
@@ -240,6 +275,30 @@ game_end();
         </arguments>
       </action>
     </event>
+    <event eventtype="9" enumb="17">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// Load Models
+vr_load_dll_models();
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
     <event eventtype="9" enumb="16">
       <action>
         <libid>1</libid>
@@ -257,7 +316,8 @@ game_end();
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>_fadeVisible = !_fadeVisible;
+            <string>/// Color Fade
+_fadeVisible = !_fadeVisible;
 if (!_fadeVisible)
     vr_color_fade(2., 0., 0.);
 else

@@ -193,7 +193,11 @@ for (var i = 0; i &lt; __controllers; ++i)
     if (!is_undefined(__m))
     {
         matrix_set(matrix_world, __m);
-        d3d_model_draw(_controllerModel, 0, 0, 0, -1);
+        if (!is_undefined(vrObj._controllerModel))
+            vertex_submit(vrObj._controllerModel, pr_trianglelist, 
+                          sprite_get_texture(dummySpr, 0));
+        else
+            d3d_model_draw(_controllerModel, 0, 0, 0, -1);
     }
     else
         show_debug_message("ERROR: Failed to get controller matrix: " + string(i + 1));
@@ -248,7 +252,11 @@ for (var i = 0; i &lt; __controllers; ++i)
     if (!is_undefined(__m))
     {
         matrix_set(matrix_world, __m);
-        d3d_model_draw(_controllerModel, 0, 0, 0, -1);
+        if (!is_undefined(vrObj._controllerModel))
+            vertex_submit(vrObj._controllerModel, pr_trianglelist, 
+                          sprite_get_texture(dummySpr, 0));
+        else
+            d3d_model_draw(_controllerModel, 0, 0, 0, -1);
     }
     else
         show_debug_message("ERROR: Failed to get controller matrix: " + string(i + 1));

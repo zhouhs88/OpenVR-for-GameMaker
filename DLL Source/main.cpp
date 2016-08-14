@@ -2,9 +2,8 @@
 #include "openvr_mingw.h" // Work around for OpenVR Bug w/ MinGW
     // Work-around by: https://github.com/ValveSoftware/openvr/issues/133
 #include <GL/glew.h> // Used for handling textures for each eye, no actual rendering
-#include <unistd.h>
 #include <SDL.h>     // Used for handling the invisible window
-#include <queue>
+#include <queue>     // Used for VR Events
 /*
     GLEW Note: The only pre-compiled GLEW package for MinGW I could
     find was v1.10.0 (Newest is 1.13.0). It only provided .a libraries
@@ -188,6 +187,34 @@ GMEX double pullEvent(double* buffer)
 
     vive -> getNextEventData(buffer);
     return 0.;
+}
+
+GMEX double getControllerModelVertexCount(double index)
+{
+    if (vive == nullptr)
+        return 0;
+
+    return vive -> getControllerModelVertexCount(index);
+}
+
+GMEX double loadControllerModel(double index, void* modelBuffer)
+{
+    // Returns if successful
+    if (vive == nullptr)
+        return 0.;
+
+    return vive -> loadControllerModel(index, modelBuffer);
+
+    return 1.;
+}
+
+GMEX double beginModelLoad()
+{
+    if (vive == nullptr)
+        return 0.;
+
+    vive -> setModelLoading(true);
+    return 1.;
 }
 
 /// --------------------- ///
