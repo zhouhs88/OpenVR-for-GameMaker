@@ -17,13 +17,5 @@
         the frame-rate to 45fps!
         
     Added This Update:
-        - Function: vr_home_fadeout
-        - Function: vr_home_fadein
-        - Function: vr_color_fade
-        - Function: vr_get_chaperonestate
-        - Function: vr_update_events
-        - Function: matrix_get_position
-        - ENUM: VR_CHAPERONE_STATE
-        - ENUM: VR_EVENT_TYPE
-        - ENUM: VR_EVENT_DETAIL
+        - Demo: Ball is able to be thrown around
  */

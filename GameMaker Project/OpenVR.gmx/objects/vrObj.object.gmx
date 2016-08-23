@@ -63,6 +63,61 @@ _gripButton[0] = false;
 
 _controllerModelLoaded = false;
 _controllerModel = undefined;
+
+_controllerMatrix[1] = 0;
+_controllerMatrix[0] = 0;
+_controllerMatrixLast[1] = 0;
+_controllermatrixLast[0] = 0;
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="3" enumb="2">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// Update Previous Controller Matrix
+for (var i = 0; i &lt; vr_get_controllercount(); ++i)
+    _controllerMatrixLast[i] = vr_get_matrix_controller(i + 1);
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="3" enumb="1">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// Update Controller Matrix
+for (var i = 0; i &lt; vr_get_controllercount(); ++i)
+    _controllerMatrix[i] = vr_get_matrix_controller(i + 1);
 </string>
           </argument>
         </arguments>
@@ -213,11 +268,38 @@ var __controllerStr = "#";
 for (var i = 0; i &lt; __controllers; ++i)
     __controllerStr += "Controller Grip State [" + string(i + 1) + "]: " + string(_gripButton[i]) + "#";
     
+if (instance_exists(interactiveObj))
+    
+    
 draw_text(10, 10, "FPS: " + string(fps_real) + " / 90#Triangles: " + string(d3dControllerObj._triangles));
 draw_text(10, 10, "##Play Size: [" + string(vr_get_playwidth()) + ", " + string(vr_get_playheight()) + "] meters" + 
                   "#Controllers: " + string(__controllers) + 
                   "#Chaperone State: " + string(vr_get_chaperonestate()) + 
                   __controllerStr);
+
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="9" enumb="82">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>show_message(string(vr_get_rendermodelcount()));
 </string>
           </argument>
         </arguments>

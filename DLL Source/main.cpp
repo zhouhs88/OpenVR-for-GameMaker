@@ -189,6 +189,14 @@ GMEX double pullEvent(double* buffer)
     return 0.;
 }
 
+GMEX double getRenderModelCount()
+{
+    if (vive == nullptr)
+        return 0.;
+
+    return vive -> getRenderModelCount();
+}
+
 GMEX double getControllerModelVertexCount(double index)
 {
     if (vive == nullptr)

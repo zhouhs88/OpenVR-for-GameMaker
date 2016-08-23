@@ -30,6 +30,42 @@ _x = 0;
 _y = _size;
 _z = 0;
 _selected = 0; // controller ID holding (0 = none)
+_justHeld = 0;
+
+_gravity = 0.001;
+_friction = 0.0002;
+_xspeed = 0.;
+_yspeed = 0.;
+_zspeed = 0.;
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="3" enumb="2">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// Update position
+if (vr_get_chaperonestate() != VR_CHAPERONE_STATE.ok)
+    exit;
+    
+_x += _xspeed;
+_y += _yspeed;
+_z += _zspeed;
 </string>
           </argument>
         </arguments>
@@ -53,13 +89,67 @@ _selected = 0; // controller ID holding (0 = none)
           <argument>
             <kind>1</kind>
             <string>/// Update position
-if (_selected == 0)
+if (vr_get_chaperonestate() != VR_CHAPERONE_STATE.ok)
     exit;
+ 
+// Free:   
+if (_selected == 0)
+{
+
+    // The ball was thrown:
+    if (_justHeld &gt; 0)
+    {
+        var __posA = matrix_get_position(vrObj._controllerMatrix[_justHeld - 1]),
+            __posB = matrix_get_position(vrObj._controllerMatrixLast[_justHeld - 1]);
+        _justHeld = 0;
+        
+        _xspeed = __posA[0] - __posB[0];
+        _yspeed = __posA[1] - __posB[1];
+        _zspeed = __posA[2] - __posB[2];
+    }
+
+    var __pWidth = vr_get_playwidth() / 2,
+        __pHeight = vr_get_playheight() / 2;
+    _yspeed -= _gravity;
     
-var __pos = matrix_get_position(vr_get_matrix_controller(_selected));
-_x = __pos[0];
-_y = __pos[1];
-_z = __pos[2];
+    if (_y &lt; 0)
+        _yspeed = abs(_yspeed);
+        
+    if (_x - _size &lt; -__pWidth)
+        _xspeed = abs(_xspeed);
+        
+    if (_x + _size &gt; __pWidth)
+        _xspeed = -(abs(_xspeed));
+        
+    if (_z - _size &lt; -__pHeight)
+        _zspeed = abs(_zspeed);
+        
+    if (_z + _size &gt; __pHeight)
+        _zspeed = -(abs(_zspeed));
+    
+    _xspeed += -sign(_xspeed) * _friction;
+    _yspeed += -sign(_yspeed) * _friction;
+    _zspeed += -sign(_zspeed) * _friction;
+    
+    if (abs(_yspeed) &gt; 0 &amp;&amp; _yspeed &lt;= _gravity &amp;&amp; _y &lt;= _gravity &amp;&amp; _y &gt; 0)
+    {
+        _yspeed = 0;
+        _y = 0;
+    }
+}
+// Grabbed:
+else
+{ 
+    _justHeld =_selected;
+    
+    var __pos = matrix_get_position(vrObj._controllerMatrix[_selected - 1]);
+    _x = __pos[0];
+    _y = __pos[1];
+    _z = __pos[2];
+    _xspeed = 0;
+    _yspeed = 0;
+    _zspeed = 0;
+}
 </string>
           </argument>
         </arguments>

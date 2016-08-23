@@ -31,17 +31,21 @@ class Vive
         uint32_t                getControllerModelVertexCount(int index);
         bool                    loadControllerModel(int index, void* modelBuffer);
         void                    setModelLoading(bool load){deviceStartLoadingModels = load;};
-
         vr::IVRSystem*          getVrSystem(){return hmd;};
-        vr::EVRInitError        initError = vr::VRInitError_None;
-        vr::EVRCompositorError  compError = vr::VRCompositorError_None;
+
+        double                  getRenderModelCount(){return (modelLoader == nullptr) ? -1 : modelLoader -> GetRenderModelCount();};
+
+
+
+    private:
 
            // OpenGL :
         GLuint                  lTexture,
                                 rTexture;
 
-    private:
             // Virtual Reality:
+        vr::EVRInitError        initError = vr::VRInitError_None;
+        vr::EVRCompositorError  compError = vr::VRCompositorError_None;
         vr::IVRSystem*          hmd = nullptr;
         vr::TrackedDevicePose_t vrPoses[vr::k_unMaxTrackedDeviceCount];
         double**                deviceMatrices = nullptr;
@@ -53,7 +57,7 @@ class Vive
         double*                 hmdMatrix = nullptr; // SHARED with deviceMatrices!
         uint32_t                rWidth,
                                 rHeight;
-        vr::IVRRenderModels     modelLoader;
+        vr::IVRRenderModels*    modelLoader = nullptr;
 
 
             // SDL:
@@ -100,6 +104,8 @@ Vive::Vive(uint32_t rWidth, uint32_t rHeight)
         fatalError = true;
         return;
     }
+
+    modelLoader = new vr::IVRRenderModels();
 
     // Create SDL window (required for OpenGL Context):
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // Max OpenGL version
@@ -191,8 +197,11 @@ Vive::~Vive()
     // Shut-down VR system:
     if (hmd != nullptr)
         vr::VR_Shutdown();
-
     hmd = nullptr;
+
+    if (modelLoader != nullptr)
+        delete modelLoader;
+    modelLoader = nullptr;
 
     // Destroy substitute texture:
     if (defaultTextureColor != nullptr)
@@ -237,7 +246,7 @@ Vive::~Vive()
         for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
         {
             if (deviceModelLoaded != nullptr && deviceModelLoaded[i] == true)
-                modelLoader.FreeRenderModel(deviceModel[i]);
+                modelLoader -> FreeRenderModel(deviceModel[i]);
             delete deviceModel[i];
         }
 
@@ -428,37 +437,40 @@ void Vive::updatePoses(void)
             }
 
             // Free model if needed:
-            if (deviceModelLoaded[i] && deviceClass[i] == '_')
+            if (deviceModelLoaded[i] && deviceClass[i] == 'c')
             {
-                modelLoader.FreeRenderModel(deviceModel[i]);
+                modelLoader -> FreeRenderModel(deviceModel[i]);
                 deviceModelLoaded[i] = false;
             }
 
             // Load model if available:
-            if (deviceStartLoadingModels && !deviceModelLoaded[i] && deviceClass[i] != '_')
+            if (deviceStartLoadingModels && !deviceModelLoaded[i] && deviceClass[i] == 'c')
             {
                 uint32_t _nameIndex = 0;
-                for (uint32_t j = 0; j <= i; ++j)
+                /*for (uint32_t j = 0; j <= i; ++j)
                 {
                     if (deviceClass[j] != '_')
                         ++_nameIndex;
-                }
+                }*/
                     // Load name
-                char _name[1024];
+                char* _name = new char[1024];
+                uint32_t _nameSize = 0;
                     // -- STUB -- // Next line crashing system???
-                uint32_t _nameSize = modelLoader.GetRenderModelName(_nameIndex, _name, 1024);
-                _nameSize = _nameSize;
-                if (_nameSize == 0)
+                _nameSize = modelLoader -> GetRenderModelName(_nameIndex, _name, 1024);
+
+                if (_nameSize != 0)
                 {
                     vr::EVRRenderModelError _error;
 
                     // Loop until done loading (or other error)
-                    while ((_error = modelLoader.LoadRenderModel_Async(_name, &(deviceModel[i]))) == vr::VRRenderModelError_Loading)
+                    while ((_error = modelLoader -> LoadRenderModel_Async(_name, &(deviceModel[i]))) == vr::VRRenderModelError_Loading)
                         ;
                         // Successful:
                     if (_error == vr::VRRenderModelError_None)
                         deviceModelLoaded[i] = true;
                 }
+
+                delete _name;
             }
         }
         else

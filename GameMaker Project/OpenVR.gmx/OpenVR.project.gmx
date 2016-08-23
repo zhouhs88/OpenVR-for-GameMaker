@@ -111,6 +111,7 @@
       <script>scripts\vr_pull_event.gml</script>
       <script>scripts\vr_generate_controller_model.gml</script>
       <script>scripts\vr_load_dll_models.gml</script>
+      <script>scripts\vr_get_rendermodelcount.gml</script>
       <scripts name="Matrices">
         <script>scripts\vr_get_matrix_hmd.gml</script>
         <script>scripts\vr_get_matrix_pos.gml</script>
